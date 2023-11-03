@@ -22,6 +22,7 @@ cp "$source_file" "$destination_directory"
 # Check the exit status of the cp command
 if [ $? -eq 0 ]; then
     echo "File copied successfully to $destination_directory"
+    diskutil eject "/Volumes/bootfs"
 else
     echo "Error copying the file"
 fi
