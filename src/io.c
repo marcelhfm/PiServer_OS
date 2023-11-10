@@ -1,11 +1,8 @@
-//
-// Created by marcel on 03.11.23.
-//
+#include "io.h"
 
 // GPIO
 
 enum {
-    PERIPHERAL_BASE = 0xFE000000,
     GPFSEL0 = PERIPHERAL_BASE + 0x200000,
     GPSET0 = PERIPHERAL_BASE + 0x20001C,
     GPCLR0 = PERIPHERAL_BASE + 0x200028,
@@ -16,34 +13,25 @@ enum {
     GPIO_MAX_PIN = 53,
     GPIO_FUNCTION_OUT = 1,
     GPIO_FUNCTION_ALT5 = 2,
-    GPIO_FUNCTION_ALT3 = 7,
+    GPIO_FUNCTION_ALT3 = 7
 };
 
 enum {
     Pull_None = 0,
-    Pull_Down = 1,
+    Pull_Down = 1, // Are down and up the right way around?
     Pull_Up = 2
 };
 
-void mmio_write(long reg, unsigned int val) {
-    *(volatile unsigned int *) reg = val;
-}
+void mmio_write(long reg, unsigned int val) { *(volatile unsigned int *) reg = val; }
 
-unsigned int mmio_read(long reg) {
-    return *(volatile unsigned int *) reg;
-}
+unsigned int mmio_read(long reg) { return *(volatile unsigned int *) reg; }
 
 unsigned int gpio_call(unsigned int pin_number, unsigned int value, unsigned int base, unsigned int field_size,
                        unsigned int field_max) {
     unsigned int field_mask = (1 << field_size) - 1;
 
-    if (pin_number > field_max) {
-        return 0;
-    }
-
-    if (value > field_mask) {
-        return 0;
-    }
+    if (pin_number > field_max) return 0;
+    if (value > field_mask) return 0;
 
     unsigned int num_fields = 32 / field_size;
     unsigned int reg = base + ((pin_number / num_fields) * 4);
@@ -119,9 +107,9 @@ enum {
 
 #define AUX_MU_BAUD(baud) ((AUX_UART_CLOCK/(baud*8))-1)
 
-unsigned char uart_outputQueue[UART_MAX_QUEUE];
-unsigned int uart_outputQueueWrite = 0;
-unsigned int uart_outputQueueRead = 0;
+unsigned char uart_output_queue[UART_MAX_QUEUE];
+unsigned int uart_output_queue_write = 0;
+unsigned int uart_output_queue_read = 0;
 
 void uart_init() {
     mmio_write(AUX_ENABLES, 1); //enable UART1
@@ -138,16 +126,12 @@ void uart_init() {
 }
 
 unsigned int uart_isOutputQueueEmpty() {
-    return uart_outputQueueRead == uart_outputQueueWrite;
+    return uart_output_queue_read == uart_output_queue_write;
 }
 
-unsigned int uart_isReadByteReady() {
-    return mmio_read(AUX_MU_LSR_REG & 0x01);
-}
+unsigned int uart_isReadByteReady() { return mmio_read(AUX_MU_LSR_REG) & 0x01; }
 
-unsigned int uart_isWriteByteReady() {
-    return mmio_read(AUX_MU_LSR_REG & 0x20);
-}
+unsigned int uart_isWriteByteReady() { return mmio_read(AUX_MU_LSR_REG) & 0x20; }
 
 unsigned char uart_readByte() {
     while (!uart_isReadByteReady());
@@ -161,36 +145,29 @@ void uart_writeByteBlockingActual(unsigned char ch) {
 
 void uart_loadOutputFifo() {
     while (!uart_isOutputQueueEmpty() && uart_isWriteByteReady()) {
-        uart_writeByteBlockingActual(uart_outputQueue[uart_outputQueueRead]);
-        uart_outputQueueRead = (uart_outputQueueRead + 1) & (UART_MAX_QUEUE - 1); // Do not overrun buffer
+        uart_writeByteBlockingActual(uart_output_queue[uart_output_queue_read]);
+        uart_output_queue_read = (uart_output_queue_read + 1) & (UART_MAX_QUEUE - 1); // Don't overrun
     }
 }
 
 void uart_writeByteBlocking(unsigned char ch) {
-    unsigned int next = (uart_outputQueueWrite + 1) & (UART_MAX_QUEUE - 1); // Dont overrun
+    unsigned int next = (uart_output_queue_write + 1) & (UART_MAX_QUEUE - 1); // Don't overrun
 
-    while (next == uart_outputQueueRead) {
-        uart_loadOutputFifo();
-    }
+    while (next == uart_output_queue_read) uart_loadOutputFifo();
 
-    uart_outputQueue[uart_outputQueueWrite] = ch;
-    uart_outputQueueWrite = next;
+    uart_output_queue[uart_output_queue_write] = ch;
+    uart_output_queue_write = next;
 }
 
 void uart_writeText(char *buffer) {
     while (*buffer) {
-        if (*buffer == '\n') {
-            uart_writeByteBlocking('\r');
-        } else {
-            uart_writeByteBlocking(*buffer++);
-        }
+        if (*buffer == '\n') uart_writeByteBlocking('\r');
+        uart_writeByteBlocking(*buffer++);
     }
 }
 
 void uart_drainOutputQueue() {
-    while (!uart_isOutputQueueEmpty()) {
-        uart_loadOutputFifo();
-    }
+    while (!uart_isOutputQueueEmpty()) uart_loadOutputFifo();
 }
 
 void uart_update() {
@@ -198,10 +175,6 @@ void uart_update() {
 
     if (uart_isReadByteReady()) {
         unsigned char ch = uart_readByte();
-        if (ch == '\r') {
-            uart_writeText("\n");
-        } else {
-            uart_writeByteBlocking(ch);
-        }
+        if (ch == '\r') uart_writeText("\n"); else uart_writeByteBlocking(ch);
     }
 }
