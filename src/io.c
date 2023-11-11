@@ -1,4 +1,5 @@
 #include "io.h"
+#include "terminal.h"
 
 // GPIO
 
@@ -123,6 +124,8 @@ void uart_init() {
     gpio_useAsAlt5(14);
     gpio_useAsAlt5(15);
     mmio_write(AUX_MU_CNTL_REG, 3); //enable RX/TX
+
+    printf("UART initialized successfully.\n");
 }
 
 unsigned int uart_isOutputQueueEmpty() {

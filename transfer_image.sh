@@ -1,5 +1,8 @@
 #!/bin/bash
 
+make clean
+make
+
 # Define the source file and destination directory on the external drive
 source_file="build/kernel8.img"
 destination_directory="/Volumes/bootfs"

@@ -1,11 +1,6 @@
-//
-// Created by marcel on 10.11.23.
-//
-
-#include "fb.h"
-#include "terminal.h"
+#include "io.h"
 #include "mb.h"
-
+#include "terminal.h"
 
 unsigned int width, height, pitch, isrgb;
 unsigned char *fb;
@@ -55,7 +50,7 @@ void fb_init() {
 
     mbox[34] = MBOX_TAG_LAST;
 
-    // Check call is successful -> pointer with depth 32
+    // Check call is successful and we have a pointer with depth 32
     if (mbox_call(MBOX_CH_PROP) && mbox[20] == 32 && mbox[28] != 0) {
         mbox[28] &= 0x3FFFFFFF; // Convert GPU address to ARM address
         width = mbox[10];       // Actual physical width
@@ -63,6 +58,8 @@ void fb_init() {
         pitch = mbox[33];       // Number of bytes per line
         isrgb = mbox[24];       // Pixel order
         fb = (unsigned char *) ((long) mbox[28]);
+
+        printf("Framebuffer initialized successfully.\n");
     }
 }
 
@@ -77,7 +74,7 @@ void drawRect(int x1, int y1, int x2, int y2, unsigned char attr, int fill) {
     while (y <= y2) {
         int x = x1;
         while (x <= x2) {
-            if ((x == x1 || x == x2) || (y == y1) || (y == y2)) {
+            if ((x == x1 || x == x2) || (y == y1 || y == y2)) {
                 drawPixel(x, y, attr);
             } else if (fill) {
                 drawPixel(x, y, (attr & 0xf0) >> 4);
@@ -149,7 +146,7 @@ void drawChar(unsigned char ch, int x, int y, unsigned char attr) {
     for (int i = 0; i < FONT_HEIGHT; i++) {
         for (int j = 0; j < FONT_WIDTH; j++) {
             unsigned char mask = 1 << j;
-            unsigned char col = (*glyph & mask) ? attr & 0x0f : (attr & 0x0f) >> 4;
+            unsigned char col = (*glyph & mask) ? attr & 0x0f : (attr & 0xf0) >> 4;
 
             drawPixel(x + j, y + i, col);
         }

@@ -7,12 +7,10 @@
 #include "terminal.h"
 
 void main() {
-    uart_init();
     fb_init();
+    uart_init();
 
-    drawString(0, 200, "Testing printing", 0x0f);
-
-    clearScreen();
+    //clearScreen();
 
     printf("Booting PiServerOS...\n");
     printf("Testing multiple prints\n");

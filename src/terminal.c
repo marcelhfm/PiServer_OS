@@ -4,6 +4,7 @@
 
 #include "fb.h"
 #include "terminal.h"
+#include "itoa.h"
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -16,6 +17,7 @@ int cursorX = 0;
 int cursorY = 0;
 
 // Function to clear the screen
+// TODO: Fix Crashing clearScreen
 void clearScreen() {
     for (int i = 0; i < SCREEN_WIDTH / FONT_WIDTH; i++) {
         for (int j = 0; j < SCREEN_HEIGHT / FONT_HEIGHT; j++) {
@@ -49,10 +51,10 @@ void updateScreen() {
 }
 
 void printf(const char *str) {
-    drawChar('T', cursorX, cursorY + 5, 0x0f);
     while (*str) {
         if (*str == '\n') {
             cursorY++;
+            cursorX = 0;
         } else {
             drawCharToBuffer(*str, cursorX, cursorY);
             cursorX++;
