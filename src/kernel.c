@@ -5,15 +5,14 @@
 #include "io.h"
 #include "fb.h"
 #include "terminal.h"
+#include "breakout.h"
 
 void main() {
     fb_init();
     uart_init();
 
-    //clearScreen();
+    clearScreen();
 
-    printf("Booting PiServerOS...\n");
-    printf("Testing multiple prints\n");
-
+    startBreakout();
     while (1);
 }

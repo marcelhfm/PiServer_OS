@@ -11,19 +11,23 @@
 
 
 // Virtual screen buffer
+//TODO: Do this in a safe place in memory
 unsigned char screen[SCREEN_WIDTH / FONT_WIDTH][SCREEN_HEIGHT / FONT_HEIGHT];
 
 int cursorX = 0;
 int cursorY = 0;
 
-// Function to clear the screen
-// TODO: Fix Crashing clearScreen
 void clearScreen() {
     for (int i = 0; i < SCREEN_WIDTH / FONT_WIDTH; i++) {
         for (int j = 0; j < SCREEN_HEIGHT / FONT_HEIGHT; j++) {
+            if (screen[i][j] != 0) {
+                drawChar(screen[i][j], i * FONT_WIDTH, j * FONT_HEIGHT, 0, 1);
+            }
             screen[i][j] = 0;
         }
     }
+    cursorX = 0;
+    cursorY = 0;
 }
 
 void scrollUp() {
@@ -45,7 +49,7 @@ void drawCharToBuffer(unsigned char ch, int x, int y) {
 void updateScreen() {
     for (int i = 0; i < SCREEN_WIDTH / FONT_WIDTH; ++i) {
         for (int j = 0; j < SCREEN_HEIGHT / FONT_HEIGHT; ++j) {
-            drawChar(screen[i][j], i * FONT_WIDTH, j * FONT_HEIGHT, 0x0f);
+            drawChar(screen[i][j], i * FONT_WIDTH, j * FONT_HEIGHT, 0x0f, 1);
         }
     }
 }
