@@ -50,15 +50,15 @@ void removeObject(struct GameObject *object) {
     object->alive = 0;
 }
 
-void moveObject(struct GameObject *object, int xoff, int yoff) {
-    moveRect(object->x, object->y, object->width, object->height, xoff, yoff, 0x00);
-    object->x = object->x + xoff;
-    object->y = object->y + yoff;
+void moveObject(struct GameObject *object, int x_offset, int y_offset) {
+    moveRect(object->x, object->y, object->width, object->height, x_offset, y_offset, 0x00);
+    object->x = object->x + x_offset;
+    object->y = object->y + y_offset;
 }
 
 struct GameObject *detectCollision(struct GameObject *with, int x_offset, int y_offset) {
     for (int i = 0; i < number_of_objects; i++) {
-        if (&objects[i] != with && objects[1].alive == 1) {
+        if (&objects[i] != with && objects[i].alive == 1) {
             if (with->x + x_offset > objects[i].x + objects[i].width ||
                 objects[i].x > with->x + x_offset + with->width) {
                 // with is too far left or right to collide
@@ -71,10 +71,8 @@ struct GameObject *detectCollision(struct GameObject *with, int x_offset, int y_
             }
         }
     }
-
     return 0;
 }
-
 // Initialize Objects
 
 void initBricks() {
@@ -151,7 +149,6 @@ void drawScoreboard(int score, int lives) {
 }
 
 void startBreakout() {
-    int counter = 0;
     struct GameObject *foundObject;
 
     int lives = NUM_LIVES;
@@ -159,7 +156,6 @@ void startBreakout() {
 
     int velocity_x = 1;
     int velocity_y = 3;
-    int paddle_velocity = paddle->width / 2;
 
     initBricks();
     initBall();
@@ -167,13 +163,7 @@ void startBreakout() {
     drawScoreboard(points, lives);
 
     while (lives > 0 && bricks > 0) {
-        //TODO: Proper input controls
-        if (paddle->x + paddle->width >= WIDTH - MARGIN || paddle->x + paddle->width <= MARGIN) {
-            paddle_velocity = -paddle_velocity;
-        }
-
-        moveObject(paddle, paddle_velocity, 0);
-
+        //TODO: Input controls
 
         foundObject = detectCollision(ball, velocity_x, velocity_y);
 

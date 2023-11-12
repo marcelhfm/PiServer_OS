@@ -1,5 +1,4 @@
 #include "io.h"
-#include "terminal.h"
 
 // GPIO
 
@@ -124,8 +123,6 @@ void uart_init() {
     gpio_useAsAlt5(14);
     gpio_useAsAlt5(15);
     mmio_write(AUX_MU_CNTL_REG, 3); //enable RX/TX
-
-    printf("UART initialized successfully.\n");
 }
 
 unsigned int uart_isOutputQueueEmpty() {
@@ -164,8 +161,8 @@ void uart_writeByteBlocking(unsigned char ch) {
 
 void uart_writeText(char *buffer) {
     while (*buffer) {
-        if (*buffer == '\n') uart_writeByteBlocking('\r');
-        uart_writeByteBlocking(*buffer++);
+        if (*buffer == '\n') uart_writeByteBlockingActual('\r');
+        uart_writeByteBlockingActual(*buffer++);
     }
 }
 
@@ -180,4 +177,31 @@ void uart_update() {
         unsigned char ch = uart_readByte();
         if (ch == '\r') uart_writeText("\n"); else uart_writeByteBlocking(ch);
     }
+}
+
+void uart_hex(unsigned int d) {
+    unsigned int n;
+    int c;
+    for (c = 28; c >= 0; c -= 4) {
+        // get highest tetrad
+        n = (d >> c) & 0xF;
+        // 0-9 => '0'-'9', 10-15 => 'A'-'F'
+        n += n > 9 ? 0x37 : 0x30;
+
+        uart_writeByteBlockingActual(n);
+    }
+}
+
+void uart_byte(unsigned char b) {
+    unsigned int n;
+    int c;
+    for (c = 4; c >= 0; c -= 4) {
+        // get highest tetrad
+        n = (b >> c) & 0xF;
+        // 0-9 => '0'-'9', 10-15 => 'A'-'F'
+        n += n > 9 ? 0x37 : 0x30;
+
+        uart_writeByteBlockingActual(n);
+    }
+    uart_writeByteBlockingActual(' ');
 }

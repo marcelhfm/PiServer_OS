@@ -5,8 +5,8 @@
 #ifndef PISERVER_OS_IO_H
 #define PISERVER_OS_IO_H
 
-#define PERIPHERAL_BASE 0xFE000000
 #define SAFE_ADDRESS    0x00210000 // Somewhere safe to store a lot of data
+#define PERIPHERAL_BASE 0xFE000000
 
 void uart_init();
 
@@ -18,12 +18,18 @@ unsigned char uart_readByte();
 
 unsigned int uart_isReadByteReady();
 
-void uart_writeByteBlocking(unsigned char ch);
+void uart_writeByteBlockingActual(unsigned char ch);
 
 void uart_update();
 
 void mmio_write(long reg, unsigned int val);
 
 unsigned int mmio_read(long reg);
+
+void gpio_useAsAlt3(unsigned int pin_number);
+
+void uart_hex(unsigned int d);
+
+void uart_byte(unsigned char b);
 
 #endif //PISERVER_OS_IO_H
